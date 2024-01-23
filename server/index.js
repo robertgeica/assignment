@@ -1,5 +1,5 @@
-const express = require("express");
-const cors = require("cors");
+const express = require('express');
+const cors = require('cors');
 
 const app = express();
 app.use(cors());
@@ -11,30 +11,30 @@ app.use(express.json());
 let books = [];
 
 // Get all books
-app.get("/books", (req, res) => {
+app.get('/books', (req, res) => {
   res.json(books);
 });
 
 // Add a new book
-app.post("/books", (req, res) => {
+app.post('/books', (req, res) => {
   const book = { id: Date.now(), ...req.body };
   books.push(book);
   res.status(201).json(book);
 });
 
 // Update a book
-app.put("/books/:id", (req, res) => {
+app.put('/books/:id', (req, res) => {
   const index = books.findIndex((book) => book.id === parseInt(req.params.id));
   if (index >= 0) {
     books[index] = { ...books[index], ...req.body };
     res.json(books[index]);
   } else {
-    res.status(404).json({ message: "Book not found" });
+    res.status(404).json({ message: 'Book not found' });
   }
 });
 
 // Delete a book
-app.delete("/books/:id", (req, res) => {
+app.delete('/books/:id', (req, res) => {
   books = books.filter((book) => book.id !== parseInt(req.params.id));
   res.status(204).send();
 });
