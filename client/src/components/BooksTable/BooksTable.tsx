@@ -35,7 +35,7 @@ const BooksTable = () => {
   const onOpenModal = (): void => setIsOpen(true);
   const onCloseModal = (): void => setIsOpen(false);
 
-  const { data, error, isLoading } = useSWR(GET_BOOKS, fetcher);
+  const { data, error, isLoading, mutate } = useSWR(GET_BOOKS, fetcher);
 
   const { trigger, isMutating } = useSWRMutation(
     `${DELETE_BOOK}/${item?.id}`,
@@ -68,9 +68,10 @@ const BooksTable = () => {
             <EditOutlinedIcon />
           </IconButton>
           <IconButton
-            onClick={() => {
-              setItem(row);
-              trigger();
+            onClick={async () => {
+              await setItem(row);
+              await trigger();
+              await mutate();
             }}
             disabled={isMutating}
           >
