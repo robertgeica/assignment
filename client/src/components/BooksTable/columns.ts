@@ -1,6 +1,6 @@
-import { TableColumn } from "../../types";
+import { TableColumnData } from '../../types';
 
-export const columns: TableColumn[] = [
+export const columns: TableColumnData[] = [
   { label: 'Title', field: 'title' },
   { label: 'Author', field: 'author' },
   { label: 'Genre', field: 'genre' },

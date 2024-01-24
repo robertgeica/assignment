@@ -3,10 +3,10 @@ import { useFormik } from 'formik';
 import { ADD_BOOK, GET_BOOKS, UPDATE_BOOK } from '../../api/constants';
 import { sendRequest, sendUpdateRequest } from '../../api/utils';
 import useSWRMutation from 'swr/mutation';
-import { TableRowData } from '../../types';
+import { Book, TableRowData } from '../../types';
 import { useSWRConfig } from 'swr';
-import { initialValues, validationSchema } from './helpers';
 import { useMemo } from 'react';
+import { initialValues, validationSchema } from './helpers';
 
 const style = {
   position: 'absolute',
@@ -37,11 +37,13 @@ interface CreateUpdateModalProps {
 
 const CreateUpdateModal = (props: CreateUpdateModalProps) => {
   const { isOpen, onCloseModal, item } = props;
+
   const { trigger, isMutating } = useSWRMutation(ADD_BOOK, sendRequest);
   const { mutate } = useSWRConfig();
 
+  const UPDATE_URL: string = `${UPDATE_BOOK}/${item?.id}`;
   const { trigger: triggerUpdate, isMutating: isUpdateMutating } =
-    useSWRMutation(`${UPDATE_BOOK}/${item?.id}`, sendUpdateRequest);
+    useSWRMutation(UPDATE_URL, sendUpdateRequest);
 
   const initialModalValues = useMemo(() => initialValues(item), [item]);
 
@@ -49,7 +51,7 @@ const CreateUpdateModal = (props: CreateUpdateModalProps) => {
     enableReinitialize: true,
     validationSchema: validationSchema,
     initialValues: initialModalValues,
-    onSubmit: async (values) => {
+    onSubmit: async (values: Book): Promise<void> => {
       try {
         if (item) {
           await triggerUpdate(values);
@@ -66,6 +68,8 @@ const CreateUpdateModal = (props: CreateUpdateModalProps) => {
     },
   });
 
+  const modalTitle: string = item ? `Edit book` : `Add new book`;
+
   return (
     <Modal open={isOpen} onClose={onCloseModal}>
       <Box sx={style}>
@@ -74,14 +78,16 @@ const CreateUpdateModal = (props: CreateUpdateModalProps) => {
           my={3}
           sx={{ fontSize: '24px', fontWeight: 600 }}
         >
-          {item ? `Edit book` : `Add new book`}
+          {modalTitle}
         </Typography>
 
         <TextField
           id='title'
           label='Title'
           variant='outlined'
-          onChange={(e) => formik.setFieldValue('title', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            formik.setFieldValue('title', e.target.value)
+          }
           value={formik.values.title}
           required
           error={formik.touched.title && Boolean(formik.errors.title)}
@@ -91,7 +97,9 @@ const CreateUpdateModal = (props: CreateUpdateModalProps) => {
           id='author'
           label='Author'
           variant='outlined'
-          onChange={(e) => formik.setFieldValue('author', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            formik.setFieldValue('author', e.target.value)
+          }
           value={formik.values.author}
           required
           error={formik.touched.author && Boolean(formik.errors.author)}
@@ -101,7 +109,9 @@ const CreateUpdateModal = (props: CreateUpdateModalProps) => {
           id='genre'
           label='Genre'
           variant='outlined'
-          onChange={(e) => formik.setFieldValue('genre', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            formik.setFieldValue('genre', e.target.value)
+          }
           value={formik.values.genre}
           required
           error={formik.touched.genre && Boolean(formik.errors.genre)}
@@ -111,7 +121,9 @@ const CreateUpdateModal = (props: CreateUpdateModalProps) => {
           id='description'
           label='Description'
           variant='outlined'
-          onChange={(e) => formik.setFieldValue('description', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            formik.setFieldValue('description', e.target.value)
+          }
           value={formik.values.description}
           required
           error={
@@ -121,7 +133,7 @@ const CreateUpdateModal = (props: CreateUpdateModalProps) => {
         />
 
         <Button
-          onClick={() => formik.handleSubmit()}
+          onClick={(): void => formik.handleSubmit()}
           variant='contained'
           disabled={isMutating}
         >

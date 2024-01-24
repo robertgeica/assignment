@@ -1,6 +1,6 @@
+import { useState } from 'react';
 import useSWR from 'swr';
-import { DELETE_BOOK, GET_BOOKS } from '../../api/constants';
-import { fetcher, sendDeleteRequest } from '../../api/utils';
+import useSWRMutation from 'swr/mutation';
 import {
   Box,
   CircularProgress,
@@ -14,14 +14,14 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { columns } from './columns';
-import { TableColumnData, TableRowData } from '../../types';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import BooksTableHeader from './BooksTableHeader';
-import { useState } from 'react';
 import CreateUpdateModal from './CreateUpdateModal';
-import useSWRMutation from 'swr/mutation';
+import { DELETE_BOOK, GET_BOOKS } from '../../api/constants';
+import { fetcher, sendDeleteRequest } from '../../api/utils';
+import { TableRowData } from '../../types';
+import { generateTableColumns, generateTableRows } from './helpers';
 
 const BooksTable = () => {
   const [item, setItem] = useState<TableRowData>({
@@ -37,49 +37,38 @@ const BooksTable = () => {
 
   const { data, error, isLoading, mutate } = useSWR(GET_BOOKS, fetcher);
 
-  const { trigger, isMutating } = useSWRMutation(
-    `${DELETE_BOOK}/${item?.id}`,
-    sendDeleteRequest
-  );
+  const DELETE_URL: string = `${DELETE_BOOK}/${item?.id}`;
+  const { trigger, isMutating } = useSWRMutation(DELETE_URL, sendDeleteRequest);
 
-  const tableColumns = columns.map((column: TableColumnData, index: number) => (
-    <TableCell align={index === 0 ? 'left' : 'right'} key={column.label}>
-      {column.label}
+  const tableColumns = generateTableColumns();
+
+  const onDeleteClick = async (row: TableRowData): Promise<void> => {
+    await setItem(row);
+    await trigger();
+    await mutate();
+  };
+
+  const rowActions = (row: TableRowData) => (
+    <TableCell align='right'>
+      <IconButton
+        onClick={() => {
+          setItem(row);
+          onOpenModal();
+        }}
+      >
+        <EditOutlinedIcon />
+      </IconButton>
+      <IconButton onClick={() => onDeleteClick(row)} disabled={isMutating}>
+        <DeleteOutlinedIcon />
+      </IconButton>
     </TableCell>
-  ));
+  );
 
   const tableRows =
     !isLoading &&
     !error &&
     data.length > 0 &&
-    data.map((row: TableRowData) => (
-      <TableRow key={row.id}>
-        <TableCell>{row.title}</TableCell>
-        <TableCell align='right'>{row.author}</TableCell>
-        <TableCell align='right'>{row.genre}</TableCell>
-        <TableCell align='right'>{row.description}</TableCell>
-        <TableCell align='right'>
-          <IconButton
-            onClick={() => {
-              setItem(row);
-              onOpenModal();
-            }}
-          >
-            <EditOutlinedIcon />
-          </IconButton>
-          <IconButton
-            onClick={async () => {
-              await setItem(row);
-              await trigger();
-              await mutate();
-            }}
-            disabled={isMutating}
-          >
-            <DeleteOutlinedIcon />
-          </IconButton>
-        </TableCell>
-      </TableRow>
-    ));
+    generateTableRows(data, rowActions);
 
   if (error) {
     return (
